@@ -1,0 +1,11 @@
+FileVersion = 1
+
+[Project]
+Name = "wslay-beef"
+TargetType = "BeefLib"
+StartupObject = "wslay_beef.Program"
+
+[Configs.Debug.Win64]
+OtherLinkFlags = "$(LinkFlags) ws2_32.lib winmm.lib"
+CLibType = "DynamicDebug"
+LibPaths = ["$(ProjectDir)\\libs\\wslay.lib"]
