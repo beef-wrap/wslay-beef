@@ -26,7 +26,7 @@
 using System;
 using System.Interop;
 
-namespace wslay_Beef;
+namespace wslay;
 
 public static class wslay
 {
@@ -36,7 +36,7 @@ public static class wslay
 	* WSLAY_VERSION macro from outside to avoid to generating wslayver.h
 	*/
 
-	enum wslay_error
+	public enum wslay_error : c_int
 	{
 		WSLAY_ERR_WANT_READ = -100,
 		WSLAY_ERR_WANT_WRITE = -101,
@@ -52,7 +52,7 @@ public static class wslay
 	/*
 	* Status codes defined in RFC6455
 	*/
-	enum wslay_status_code
+	public enum wslay_status_code : c_int
 	{
 		WSLAY_CODE_NORMAL_CLOSURE = 1000,
 		WSLAY_CODE_GOING_AWAY = 1001,
@@ -68,7 +68,7 @@ public static class wslay
 		WSLAY_CODE_TLS_HANDSHAKE = 1015
 	}
 
-	enum wslay_io_flags
+	public enum wslay_io_flags : c_int
 	{
 		/*
 		* There is more data to send.
@@ -99,10 +99,10 @@ public static class wslay
 	public typealias int16_t = int16;
 	public typealias int32_t = int32;
 	public typealias int64_t = int64;
-	public typealias size_t = uint32;
+	public typealias size_t = uint;
 	public typealias ssize_t = size_t;
 
-	public function ssize_t wslay_frame_send_callback(uint8_t* data, size_t len, int flags, void* user_data);
+	public function ssize_t wslay_frame_send_callback(uint8_t* data, size_t len, c_int flags, void* user_data);
 	/*
 	* Callback function used by wslay_frame_recv() function when it needs
 	* more data. The implementation of this function must fill at most
@@ -114,7 +114,7 @@ public static class wslay
 	* error, return -1. The return value 0 is also treated an error by
 	* the library.
 	*/
-	public function ssize_t wslay_frame_recv_callback(uint8_t* buf, size_t len, int flags, void* user_data);
+	public function ssize_t wslay_frame_recv_callback(uint8_t* buf, size_t len, c_int flags, void* user_data);
 	/*
 	* Callback function used by wslay_frame_send() function when it needs
 	* new mask key. The implementation of this function must write
@@ -122,20 +122,20 @@ public static class wslay
 	* wslay_frame_context_init() function. The implementation of this
 	* function return 0 on success. If there is an error, return -1.
 	*/
-	public function int wslay_frame_genmask_callback(uint8_t* buf, size_t len, void* user_data);
+	public function c_int wslay_frame_genmask_callback(uint8_t* buf, size_t len, void* user_data);
 
 	[CRepr]
-    public struct wslay_frame_callbacks
+	public struct wslay_frame_callbacks
 	{
 		wslay_frame_send_callback send_callback;
 		wslay_frame_recv_callback recv_callback;
 		wslay_frame_genmask_callback genmask_callback;
-	};
+	}
 
 	/*
 	* The opcode defined in RFC6455.
 	*/
-	enum wslay_opcode
+	public enum wslay_opcode : c_int
 	{
 		WSLAY_CONTINUATION_FRAME = 0x0u,
 		WSLAY_TEXT_FRAME = 0x1u,
@@ -143,7 +143,7 @@ public static class wslay
 		WSLAY_CONNECTION_CLOSE = 0x8u,
 		WSLAY_PING = 0x9u,
 		WSLAY_PONG = 0xau
-	};
+	}
 
 	/*
 	* Macro that returns 1 if opcode is control frame opcode, otherwise
@@ -165,7 +165,8 @@ public static class wslay
 //	#define wslay_get_rsv2(rsv) ((rsv >> 1) & 1)
 //	#define wslay_get_rsv3(rsv) (rsv & 1)
 
-	struct wslay_frame_iocb
+	[CRepr]
+	public struct wslay_frame_iocb
 	{
 		/* 1 for fragmented final frame, 0 for otherwise */
 		uint8_t fin;
@@ -184,9 +185,10 @@ public static class wslay
 		uint8_t* data;
 		/* bytes of data defined above */
 		size_t data_length;
-	};
+	}
 
-	struct wslay_frame_context;
+	[CRepr]
+	public struct wslay_frame_context;
 
 	/*
 	* Initializes ctx using given callbacks and user_data.  This function
@@ -196,7 +198,7 @@ public static class wslay
 	* callback functions. When the user code finished using ctx, it must
 	* call wslay_frame_context_free to deallocate memory.
 	*/
-	[CLink] public static extern int wslay_frame_context_init(wslay_frame_context** ctx, wslay_frame_callbacks* callbacks, void* user_data);
+	[CLink] public static extern c_int wslay_frame_context_init(wslay_frame_context** ctx, wslay_frame_callbacks* callbacks, void* user_data);
 
 	/*
 	* Deallocates memory pointed by ctx.
@@ -275,9 +277,9 @@ public static class wslay
 	[CLink] public static extern ssize_t wslay_frame_recv(wslay_frame_context* ctx, wslay_frame_iocb* iocb);
 
 	[CRepr]
-    public struct wslay_event_context;
+	public struct wslay_event_context;
 
-    [CRepr]
+	[CRepr]
 	public struct wslay_event_on_msg_recv_arg
 	{
 		/* reserved bits: rsv = (RSV1 << 2) | (RSV2 << 1) | RSV3 */
@@ -293,7 +295,7 @@ public static class wslay
 		* code is included in the close control frame, it is set to 0.
 		*/
 		uint16_t status_code;
-	};
+	}
 
 	/*
 	* Callback function invoked by wslay_event_recv() when a message is
@@ -301,7 +303,8 @@ public static class wslay
 	*/
 	public function void wslay_event_on_msg_recv_callback(wslay_event_context* ctx, wslay_event_on_msg_recv_arg* arg, void* user_data);
 
-	struct wslay_event_on_frame_recv_start_arg
+	[CRepr]
+	public struct wslay_event_on_frame_recv_start_arg
 	{
 		/* fin bit; 1 for final frame, or 0. */
 		uint8_t fin;
@@ -311,7 +314,7 @@ public static class wslay
 		uint8_t opcode;
 		/* payload length of ths frame */
 		uint64_t payload_length;
-	};
+	}
 
 	/*
 	* Callback function invoked by wslay_event_recv() when a new frame
@@ -320,13 +323,14 @@ public static class wslay
 	*/
 	public function void wslay_event_on_frame_recv_start_callback(wslay_event_context* ctx, wslay_event_on_frame_recv_start_arg* arg, void* user_data);
 
-	struct wslay_event_on_frame_recv_chunk_arg
+	[CRepr]
+	public struct wslay_event_on_frame_recv_chunk_arg
 	{
 		/* chunk of payload data */
 		uint8_t* data;
 		/* length of data */
 		size_t data_length;
-	};
+	}
 
 	/*
 	* Callback function invoked by wslay_event_recv() when a chunk of
@@ -354,7 +358,7 @@ public static class wslay
 	* instead. This is important because it tells wslay_event_recv() to
 	* stop receiving further data and return.
 	*/
-	public function ssize_t wslay_event_recv_callback(wslay_event_context* ctx, uint8_t* buf, size_t len, int flags, void* user_data);
+	public function ssize_t wslay_event_recv_callback(wslay_event_context* ctx, uint8_t* buf, size_t len, c_int flags, void* user_data);
 
 	/*
 	* Callback function invoked by wslay_event_send() when it wants to
@@ -375,7 +379,7 @@ public static class wslay
 	* instead. This is important because it tells wslay_event_send() to
 	* stop sending data and return.
 	*/
-	public function ssize_t wslay_event_send_callback(wslay_event_context* ctx, uint8_t* data, size_t len, int flags, void* user_data);
+	public function ssize_t wslay_event_send_callback(wslay_event_context* ctx, uint8_t* data, size_t len, c_int flags, void* user_data);
 
 	/*
 	* Callback function invoked by wslay_event_send() when it wants new
@@ -383,10 +387,10 @@ public static class wslay
 	* client is masked, so this callback function is only needed if an
 	* event-based API is initialized for WebSocket client use.
 	*/
-	public function int wslay_event_genmask_callback(wslay_event_context* ctx, uint8_t* buf, size_t len, void* user_data);
+	public function c_int wslay_event_genmask_callback(wslay_event_context* ctx, uint8_t* buf, size_t len, void* user_data);
 
 	[CRepr]
-    public struct wslay_event_callbacks
+	public struct wslay_event_callbacks
 	{
 		public wslay_event_recv_callback recv_callback;
 		public wslay_event_send_callback send_callback;
@@ -395,7 +399,7 @@ public static class wslay
 		public wslay_event_on_frame_recv_chunk_callback on_frame_recv_chunk_callback;
 		public wslay_event_on_frame_recv_end_callback on_frame_recv_end_callback;
 		public wslay_event_on_msg_recv_callback on_msg_recv_callback;
-	};
+	}
 
 	/*
 	* Initializes ctx as WebSocket Server. user_data is an arbitrary
@@ -408,7 +412,7 @@ public static class wslay
 	* WSLAY_ERR_NOMEM
 	*   Out of memory.
 	*/
-	[CLink] public static extern int wslay_event_context_server_init(wslay_event_context** ctx, wslay_event_callbacks* callbacks, void* user_data);
+	[CLink] public static extern c_int wslay_event_context_server_init(wslay_event_context** ctx, wslay_event_callbacks* callbacks, void* user_data);
 
 	/*
 	* Initializes ctx as WebSocket client. user_data is an arbitrary
@@ -421,7 +425,7 @@ public static class wslay
 	* WSLAY_ERR_NOMEM
 	*   Out of memory.
 	*/
-	[CLink] public static extern int wslay_event_context_client_init(wslay_event_context** ctx, wslay_event_callbacks* callbacks, void* user_data);
+	[CLink] public static extern c_int wslay_event_context_client_init(wslay_event_context** ctx, wslay_event_callbacks* callbacks, void* user_data);
 
 	/*
 	* Releases allocated resources for ctx.
@@ -449,7 +453,7 @@ public static class wslay
 	* This function must not be used after the first invocation of
 	* wslay_event_recv() function.
 	*/
-	[CLink] public static extern void wslay_event_config_set_no_buffering(wslay_event_context* ctx, int val);
+	[CLink] public static extern void wslay_event_config_set_no_buffering(wslay_event_context* ctx, c_int val);
 
 	/*
 	* Sets maximum length of a message that can be received. The length
@@ -504,7 +508,7 @@ public static class wslay
 	* further call of wslay_event_recv() and must close WebSocket
 	* connection.
 	*/
-	[CLink] public static extern int wslay_event_recv(wslay_event_context* ctx);
+	[CLink] public static extern c_int wslay_event_recv(wslay_event_context* ctx);
 
 	/*
 	* Sends queued messages to peer. When sending a
@@ -543,7 +547,7 @@ public static class wslay
 	* further call of wslay_event_send() and must close WebSocket
 	* connection.
 	*/
-	[CLink] public static extern int wslay_event_send(wslay_event_context* ctx);
+	[CLink] public static extern c_int wslay_event_send(wslay_event_context* ctx);
 
 	/*
 	* Writes queued messages to a buffer. Unlike wslay_event_send(), this
@@ -588,12 +592,13 @@ public static class wslay
 	*/
 	[CLink] public static extern ssize_t wslay_event_write(wslay_event_context* ctx, uint8_t* buf, size_t buflen);
 
-	struct wslay_event_msg
+	[CRepr]
+	public struct wslay_event_msg
 	{
 		uint8_t opcode;
 		uint8_t* msg;
 		size_t msg_length;
-	};
+	}
 
 	/*
 	* Queues message specified in arg.
@@ -619,21 +624,22 @@ public static class wslay
 	* WSLAY_ERR_NOMEM
 	*   Out of memory.
 	*/
-	[CLink] public static extern int wslay_event_queue_msg(wslay_event_context* ctx, wslay_event_msg* arg);
+	[CLink] public static extern c_int wslay_event_queue_msg(wslay_event_context* ctx, wslay_event_msg* arg);
 
 	/*
 	* Extended version of wslay_event_queue_msg which allows to set reserved bits.
 	*/
-	[CLink] public static extern int wslay_event_queue_msg_ex(wslay_event_context* ctx, wslay_event_msg* arg, uint8_t rsv);
+	[CLink] public static extern c_int wslay_event_queue_msg_ex(wslay_event_context* ctx, wslay_event_msg* arg, uint8_t rsv);
 
 	/*
 	* Specify "source" to generate message.
 	*/
-	[Union] struct wslay_event_msg_source
+	[CRepr, Union]
+	struct wslay_event_msg_source
 	{
-		int fd;
+		c_int fd;
 		void* data;
-	};
+	}
 
 	/*
 	* Callback function called by wslay_event_send() to read message data
@@ -644,9 +650,10 @@ public static class wslay
 	* moment, return 0. If there is an error, return -1 and set error
 	* code WSLAY_ERR_CALLBACK_FAILURE using wslay_event_set_error().
 	*/
-	function ssize_t wslay_event_fragmented_msg_callback(wslay_event_context* ctx, uint8_t* buf, size_t len, wslay_event_msg_source* source, int* eof, void* user_data);
+	public function ssize_t wslay_event_fragmented_msg_callback(wslay_event_context* ctx, uint8_t* buf, size_t len, wslay_event_msg_source* source, c_int* eof, void* user_data);
 
-	struct wslay_event_fragmented_msg
+	[CRepr]
+	public struct wslay_event_fragmented_msg
 	{
 		/* opcode */
 		uint8_t opcode;
@@ -654,7 +661,7 @@ public static class wslay
 		wslay_event_msg_source source;
 		/* Callback function to read message data from source. */
 		wslay_event_fragmented_msg_callback read_callback;
-	};
+	}
 
 	/*
 	* Queues a fragmented message specified in arg.
@@ -679,13 +686,13 @@ public static class wslay
 	* WSLAY_ERR_NOMEM
 	*   Out of memory.
 	*/
-	[CLink] public static extern int wslay_event_queue_fragmented_msg(wslay_event_context* ctx, wslay_event_fragmented_msg* arg);
+	[CLink] public static extern c_int wslay_event_queue_fragmented_msg(wslay_event_context* ctx, wslay_event_fragmented_msg* arg);
 
 	/*
 	* Extended version of wslay_event_queue_fragmented_msg which allows to set
 	* reserved bits.
 	*/
-	[CLink] public static extern int wslay_event_queue_fragmented_msg_ex(wslay_event_context* ctx, wslay_event_fragmented_msg* arg, uint8_t rsv);
+	[CLink] public static extern c_int wslay_event_queue_fragmented_msg_ex(wslay_event_context* ctx, wslay_event_fragmented_msg* arg, uint8_t rsv);
 
 	/*
 	* Queues close control frame. This function is provided just for
@@ -715,7 +722,7 @@ public static class wslay
 	* WSLAY_ERR_NOMEM
 	*   Out of memory.
 	*/
-	[CLink] public static extern int wslay_event_queue_close(wslay_event_context* ctx, uint16_t status_code, uint8_t* reason, size_t reason_length);
+	[CLink] public static extern c_int wslay_event_queue_close(wslay_event_context* ctx, uint16_t status_code, uint8_t* reason, size_t reason_length);
 
 	/*
 	* Sets error code to tell the library there is an error. This
@@ -723,7 +730,7 @@ public static class wslay
 	* the description of callback function to know which error code
 	* should be used.
 	*/
-	[CLink] public static extern void wslay_event_set_error(wslay_event_context* ctx, int val);
+	[CLink] public static extern void wslay_event_set_error(wslay_event_context* ctx, c_int val);
 
 	/*
 	* Query whehter the library want to read more data from peer.
@@ -731,7 +738,7 @@ public static class wslay
 	* wslay_event_want_read() returns 1 if the library want to read more
 	* data from peer, or returns 0.
 	*/
-	[CLink] public static extern int wslay_event_want_read(wslay_event_context* ctx);
+	[CLink] public static extern c_int wslay_event_want_read(wslay_event_context* ctx);
 
 	/*
 	* Query whehter the library want to send more data to peer.
@@ -739,7 +746,7 @@ public static class wslay
 	* wslay_event_want_write() returns 1 if the library want to send more
 	* data to peer, or returns 0.
 	*/
-	[CLink] public static extern int wslay_event_want_write(wslay_event_context* ctx);
+	[CLink] public static extern c_int wslay_event_want_write(wslay_event_context* ctx);
 
 	/*
 	* Prevents the event-based API context from reading any further data
@@ -764,7 +771,7 @@ public static class wslay
 	* After wslay_event_shutdown_read() is called,
 	* wslay_event_get_read_enabled() returns 0.
 	*/
-	[CLink] public static extern int wslay_event_get_read_enabled(wslay_event_context* ctx);
+	[CLink] public static extern c_int wslay_event_get_read_enabled(wslay_event_context* ctx);
 
 	/*
 	* Returns 1 if the event-based API context allows write operation, or
@@ -773,19 +780,19 @@ public static class wslay
 	* After wslay_event_shutdown_write() is called,
 	* wslay_event_get_write_enabled() returns 0.
 	*/
-	[CLink] public static extern int wslay_event_get_write_enabled(wslay_event_context* ctx);
+	[CLink] public static extern c_int wslay_event_get_write_enabled(wslay_event_context* ctx);
 
 	/*
 	* Returns 1 if a close control frame has been received from peer, or
 	* returns 0.
 	*/
-	[CLink] public static extern int wslay_event_get_close_received(wslay_event_context* ctx);
+	[CLink] public static extern c_int wslay_event_get_close_received(wslay_event_context* ctx);
 
 	/*
 	* Returns 1 if a close control frame has been sent to peer, or
 	* returns 0.
 	*/
-	[CLink] public static extern int wslay_event_get_close_sent(wslay_event_context* ctx);
+	[CLink] public static extern c_int wslay_event_get_close_sent(wslay_event_context* ctx);
 
 	/*
 	* Returns status code received in close control frame. If no close

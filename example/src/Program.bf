@@ -2,7 +2,8 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
-using static wslay_Beef.wslay;
+
+using static wslay.wslay;
 
 namespace example;
 
@@ -41,8 +42,6 @@ static class Program
 
 
 		wslay_event_context_client_init(&ctx, &cb, null);
-
-
 
 		return 0;
 	}
